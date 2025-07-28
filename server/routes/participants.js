@@ -1,6 +1,6 @@
 import express from 'express';
 import Participant from '../models/Participant.js';
-import { upload, handleUploadErrors } from '../middleware/cloudinaryUpload.js';
+import { upload, handleUploadErrors } from '../middleware/upload.js';
 
 const router = express.Router();
 
