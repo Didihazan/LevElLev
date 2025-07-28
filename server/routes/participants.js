@@ -1,12 +1,18 @@
 import express from 'express';
 import Participant from '../models/Participant.js';
-import { upload, handleUploadErrors } from '../middleware/upload.js';
+import { upload, handleUploadErrors } from '../middleware/upload.js'; // ✅ נתיב נכון
 
 const router = express.Router();
 
 // POST /api/participants - הוספת משתתף חדש
 router.post('/', upload.single('photo'), handleUploadErrors, async (req, res) => {
     try {
+        console.log('📝 נתקבל טופס חדש:', {
+            gender: req.body.gender,
+            name: req.body.name,
+            hasPhoto: !!req.file
+        });
+
         const participantData = {
             gender: req.body.gender,
             list: req.body.gender === 'male' ? 'רווקים' : 'רווקות',
@@ -35,6 +41,7 @@ router.post('/', upload.single('photo'), handleUploadErrors, async (req, res) =>
                 size: req.file.bytes,               // גודל בבתים
                 format: req.file.format             // פורמט התמונה
             };
+            console.log('📸 תמונה הועלתה:', req.file.path);
         }
 
         // יצירת משתתף חדש
@@ -175,6 +182,8 @@ router.get('/stats', async (req, res) => {
         const maleCount = await Participant.countDocuments({ gender: 'male' });
         const femaleCount = await Participant.countDocuments({ gender: 'female' });
         const totalCount = maleCount + femaleCount;
+
+        console.log(`📊 סטטיסטיקות: ${totalCount} משתתפים (${maleCount} רווקים, ${femaleCount} רווקות)`);
 
         res.json({
             success: true,

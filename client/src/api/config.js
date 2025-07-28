@@ -1,10 +1,10 @@
 // זיהוי אוטומטי של סביבת הפעלה
 const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
 
+// כתובות מתוקנות
 const API_BASE_URL = isDevelopment
-    ? 'http://localhost:5000/api'  // פיתוח - השרת המקומי שלך
-    : 'https://levellev-server.onrender.com/api';  // פרודקשן - תחליף לכתובת השרת בVercel
-
+    ? 'http://localhost:5000/api'  // פיתוח - השרת המקומי
+    : 'https://levellev-server.onrender.com/api';  // פרודקשן - Render
 
 console.log(`🌐 API Base URL: ${API_BASE_URL} (${isDevelopment ? 'Development' : 'Production'})`);
 
@@ -45,7 +45,7 @@ export const API = {
         if (photo?.cloudinaryUrl) {
             return photo.cloudinaryUrl;
         }
-        return null; // או תמונת ברירת מחדל
+        return null; // אין תמונה
     }
 };
 
@@ -66,10 +66,13 @@ export const apiCall = async (apiConfig) => {
             options.body = JSON.stringify(apiConfig.body);
         }
 
+        console.log(`📡 API Call: ${apiConfig.method} ${apiConfig.url}`);
         const response = await fetch(apiConfig.url, options);
         const data = await response.json();
 
         if (!response.ok) {
+            console.error(`❌ API Error ${response.status}:`, data);
+
             // הצגת שגיאות מפורטות מהשרת
             if (data.errors && Array.isArray(data.errors)) {
                 throw new Error(`${data.message}\n\n${data.errors.join('\n')}`);
@@ -80,10 +83,11 @@ export const apiCall = async (apiConfig) => {
             }
         }
 
+        console.log(`✅ API Success:`, data);
         return data;
 
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('❌ API Error:', error);
 
         // טיפול בשגיאות רשת
         if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {

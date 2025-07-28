@@ -16,11 +16,11 @@ const PORT = process.env.PORT || 5000;
 // חיבור למסד הנתונים
 connectDB();
 
-// Middleware
+// Middleware - CORS מתוקן
 app.use(cors({
     origin: [
         'http://localhost:5173',        // פיתוח מקומי
-        'https://lev-el-lev.vercel.app' // פרודקשן
+        'https://levellev-client.onrender.com' // פרודקשן - Render
     ],
     credentials: true
 }));
@@ -28,7 +28,7 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// הגשת קבצים סטטיים (תמונות)
+// הגשת קבצים סטטיים (תמונות) - לא רלוונטי עם Cloudinary אבל נשאר לגיבוי
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // נתבי API
@@ -40,7 +40,9 @@ app.get('/api/health', (req, res) => {
         success: true,
         message: 'השרת פועל תקין',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        server: 'Render',
+        client: 'https://levellev-client.onrender.com'
     });
 });
 
@@ -49,13 +51,14 @@ app.get('/', (req, res) => {
     res.json({
         message: '🎉 שרת אפליקציית היכרויות לחתונה',
         version: '1.0.0',
+        server: 'https://levellev-server.onrender.com',
+        client: 'https://levellev-client.onrender.com',
         endpoints: [
             'GET /api/health - בדיקת תקינות השרת',
             'POST /api/participants - הוספת משתתף חדש',
             'GET /api/participants/males - רשימת רווקים',
             'GET /api/participants/females - רשימת רווקות',
-            'GET /api/participants/stats - סטטיסטיקות',
-            'GET /uploads/photos/:filename - הצגת תמונות'
+            'GET /api/participants/stats - סטטיסטיקות'
         ]
     });
 });
@@ -83,9 +86,10 @@ app.use((error, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`
     🚀 השרת פועל על פורט ${PORT}
-    🌐 כתובת: http://localhost:${PORT}
+    🌐 שרת: https://levellev-server.onrender.com
+    👥 לקוח: https://levellev-client.onrender.com
     📊 MongoDB Atlas: מחובר
-    📁 תמונות: /uploads/photos/
+    ☁️ תמונות: Cloudinary
     🔗 API: /api/participants
     `);
 });
