@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Briefcase, Calendar, ChevronDown, Heart, MapPin, Phone, Star, User, Users} from 'lucide-react';
+import {Briefcase, Calendar, ChevronDown, Heart, MapPin, Phone, Star, User, Users, Trash2} from 'lucide-react';
 import {API, apiCall} from '../api/config.js';
 
 const AdminDashboard = () => {
@@ -8,6 +8,7 @@ const AdminDashboard = () => {
     const [expandedUser, setExpandedUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [deleting, setDeleting] = useState(null); // ID של המשתתף שנמחק
 
     // טעינת נתונים מהשרת
     useEffect(() => {
@@ -43,6 +44,45 @@ const AdminDashboard = () => {
         setExpandedUser(expandedUser === userId ? null : userId);
     };
 
+    // ✅ פונקציה למחיקת משתתף
+    const handleDeleteParticipant = async (user) => {
+        const confirmDelete = window.confirm(
+            `האם אתה בטוח שברצונך למחוק את ${user.name} מהרשימה?\n\nפעולה זו אינה ניתנת לביטול.`
+        );
+
+        if (!confirmDelete) {
+            return;
+        }
+
+        setDeleting(user._id);
+
+        try {
+            const response = await apiCall(API.deleteParticipant(user._id));
+
+            console.log('✅ משתתף נמחק:', response);
+
+            // עדכון הרשימות המקומיות
+            if (user.gender === 'male') {
+                setMales(prev => prev.filter(m => m._id !== user._id));
+            } else {
+                setFemales(prev => prev.filter(f => f._id !== user._id));
+            }
+
+            // סגירת האקורדיון אם היה פתוח
+            if (expandedUser === user._id) {
+                setExpandedUser(null);
+            }
+
+            alert(`✅ ${user.name} נמחק בהצלחה מהרשימה`);
+
+        } catch (error) {
+            console.error('❌ שגיאה במחיקה:', error);
+            alert(`❌ שגיאה במחיקת ${user.name}: ${error.message}`);
+        } finally {
+            setDeleting(null);
+        }
+    };
+
     // רכיב משתמש בודד
     const UserCard = ({user, gender}) => {
         // השתמש ב-_id של מונגו או ב-submittedAt כמזהה ייחודי
@@ -50,14 +90,15 @@ const AdminDashboard = () => {
         const isExpanded = expandedUser === uniqueId;
         const bgColor = gender === 'male' ? 'from-blue-50 to-indigo-50' : 'from-pink-50 to-purple-50';
         const accentColor = gender === 'male' ? 'blue' : 'pink';
+        const isDeleting = deleting === user._id;
 
         return (
             <div
-                className={`bg-gradient-to-r ${bgColor} rounded-2xl shadow-lg mb-4 overflow-hidden transition-all duration-300`}>
+                className={`bg-gradient-to-r ${bgColor} rounded-2xl shadow-lg mb-4 overflow-hidden transition-all duration-300 ${isDeleting ? 'opacity-50' : ''}`}>
                 {/* כותרת משתמש - תמיד גלויה */}
                 <div
                     className="p-6 cursor-pointer hover:bg-white/50 transition-all duration-200"
-                    onClick={() => toggleUser(uniqueId)}
+                    onClick={() => !isDeleting && toggleUser(uniqueId)}
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -106,10 +147,30 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        {/* כפתור פתיחה/סגירה */}
-                        <div
-                            className={`p-2 rounded-full bg-${accentColor}-100 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                            <ChevronDown className={`text-${accentColor}-600`} size={24}/>
+                        {/* כפתורי פעולה */}
+                        <div className="flex items-center gap-2">
+                            {/* ✅ כפתור מחיקה */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation(); // מונע פתיחת האקורדיון
+                                    handleDeleteParticipant(user);
+                                }}
+                                disabled={isDeleting}
+                                className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={`מחק את ${user.name}`}
+                            >
+                                {isDeleting ? (
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></div>
+                                ) : (
+                                    <Trash2 size={18} />
+                                )}
+                            </button>
+
+                            {/* כפתור פתיחה/סגירה */}
+                            <div
+                                className={`p-2 rounded-full bg-${accentColor}-100 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                                <ChevronDown className={`text-${accentColor}-600`} size={24}/>
+                            </div>
                         </div>
                     </div>
                 </div>

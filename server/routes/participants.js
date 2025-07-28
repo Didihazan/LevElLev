@@ -204,4 +204,51 @@ router.get('/stats', async (req, res) => {
     }
 });
 
+// DELETE /api/participants/:id - מחיקת משתתף
+router.delete('/:id', async (req, res) => {
+    try {
+        const participantId = req.params.id;
+
+        // וולידציה של MongoDB ObjectId
+        if (!participantId.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({
+                success: false,
+                message: 'מזהה משתתף לא תקין'
+            });
+        }
+
+        // חיפוש המשתתף
+        const participant = await Participant.findById(participantId);
+
+        if (!participant) {
+            return res.status(404).json({
+                success: false,
+                message: 'משתתף לא נמצא'
+            });
+        }
+
+        // מחיקת המשתתף
+        await Participant.findByIdAndDelete(participantId);
+
+        console.log(`🗑️ משתתף נמחק: ${participant.name} (${participant.list})`);
+
+        res.json({
+            success: true,
+            message: `המשתתף ${participant.name} נמחק בהצלחה`,
+            deletedParticipant: {
+                id: participant._id,
+                name: participant.name,
+                list: participant.list
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ שגיאה במחיקת משתתף:', error);
+        res.status(500).json({
+            success: false,
+            message: 'שגיאה במחיקת המשתתף. נסה שוב מאוחר יותר'
+        });
+    }
+});
+
 export default router;

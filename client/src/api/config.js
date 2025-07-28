@@ -40,6 +40,12 @@ export const API = {
         method: 'GET'
     }),
 
+    // מחיקת משתתף
+    deleteParticipant: (participantId) => ({
+        url: `${API_BASE_URL}/participants/${participantId}`,
+        method: 'DELETE'
+    }),
+
     // URL לתמונות מ-Cloudinary
     getPhotoUrl: (photo) => {
         if (photo?.cloudinaryUrl) {
