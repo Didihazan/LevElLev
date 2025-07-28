@@ -1,92 +1,84 @@
-// api/config.js
-// קובץ הגדרות API - כאן תשנה רק את ה-BASE_URL לפרודקשן
+const API_BASE_URL = 'http://localhost:5000/api';
 
-const API_CONFIG = {
-    // URL בסיס לפיתוח (זמני)
-    // BASE_URL: 'https://api-dev.wedding-match.temp',
-    BASE_URL: 'http://localhost:5000',
-    // URL לפרודקשן (תשנה בהמשך)
-    // BASE_URL: 'https://your-production-api.com',
-
-    // נתיבי API
-    ENDPOINTS: {
-        // שליחת טופס חדש
-        SUBMIT_FORM: '/api/submit',
-
-        // קבלת רשימת רווקים
-        GET_MALES: '/api/users/males',
-
-        // קבלת רשימת רווקות
-        GET_FEMALES: '/api/users/females',
-
-        // קבלת פרטי משתמש ספציפי
-        GET_USER: '/api/users/:id',
-
-        // העלאת תמונה
-        UPLOAD_IMAGE: '/api/upload',
-
-        // מחיקת משתמש (אופציונלי)
-        DELETE_USER: '/api/users/:id'
-    },
-
-    // הגדרות בקשות
-    REQUEST_CONFIG: {
-        timeout: 10000, // 10 שניות
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
-    }
-};
-
-// פונקציה ליצירת URL מלא
-export const buildUrl = (endpoint, params = {}) => {
-    let url = API_CONFIG.BASE_URL + endpoint;
-
-    // החלפת פרמטרים ב-URL (למשל :id)
-    Object.keys(params).forEach(key => {
-        url = url.replace(`:${key}`, params[key]);
-    });
-
-    return url;
-};
-
-// פונקציות API מוכנות לשימוש
 export const API = {
-    // שליחת טופס
-    submitForm: (formData) => ({
-        url: buildUrl(API_CONFIG.ENDPOINTS.SUBMIT_FORM),
+    // בדיקת תקינות השרת
+    health: () => ({
+        url: `${API_BASE_URL.replace('/api', '')}/api/health`,
+        method: 'GET'
+    }),
+
+    // הוספת משתתף חדש
+    addParticipant: (formData) => ({
+        url: `${API_BASE_URL}/participants`,
         method: 'POST',
-        data: formData
+        body: formData // FormData object
     }),
 
     // קבלת רשימת רווקים
     getMales: () => ({
-        url: buildUrl(API_CONFIG.ENDPOINTS.GET_MALES),
+        url: `${API_BASE_URL}/participants/males`,
         method: 'GET'
     }),
 
     // קבלת רשימת רווקות
     getFemales: () => ({
-        url: buildUrl(API_CONFIG.ENDPOINTS.GET_FEMALES),
+        url: `${API_BASE_URL}/participants/females`,
         method: 'GET'
     }),
 
-    // קבלת פרטי משתמש
-    getUser: (userId) => ({
-        url: buildUrl(API_CONFIG.ENDPOINTS.GET_USER, { id: userId }),
+    // סטטיסטיקות
+    getStats: () => ({
+        url: `${API_BASE_URL}/participants/stats`,
         method: 'GET'
     }),
 
-    // העלאת תמונה
-    uploadImage: (imageFile) => ({
-        url: buildUrl(API_CONFIG.ENDPOINTS.UPLOAD_IMAGE),
-        method: 'POST',
-        data: imageFile,
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    })
+    // URL לתמונות
+    getPhotoUrl: (filename) => `http://localhost:5000/uploads/photos/${filename}`
 };
 
-export default API_CONFIG;
+// פונקציית עזר לביצוע קריאות API
+export const apiCall = async (apiConfig) => {
+    try {
+        const options = {
+            method: apiConfig.method,
+            ...(apiConfig.body && { body: apiConfig.body })
+        };
+
+        // אם זה לא FormData, הוסף Content-Type
+        if (apiConfig.body && !(apiConfig.body instanceof FormData)) {
+            options.headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            options.body = JSON.stringify(apiConfig.body);
+        }
+
+        const response = await fetch(apiConfig.url, options);
+        const data = await response.json();
+
+        if (!response.ok) {
+            // הצגת שגיאות מפורטות מהשרת
+            if (data.errors && Array.isArray(data.errors)) {
+                throw new Error(`${data.message}\n\n${data.errors.join('\n')}`);
+            } else if (data.message) {
+                throw new Error(data.message);
+            } else {
+                throw new Error(`שגיאת HTTP: ${response.status}`);
+            }
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error('API Error:', error);
+
+        // טיפול בשגיאות רשת
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            throw new Error('שגיאת חיבור לשרת. נא לבדוק שהשרת פועל ולנסות שוב.');
+        }
+
+        throw error;
+    }
+};
+
+export default API;

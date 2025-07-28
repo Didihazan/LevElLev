@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Heart, User, Phone, Camera, Send, CheckCircle } from 'lucide-react';
+import { API, apiCall } from '../api/config.js';
 
 const WeddingDatingForm = () => {
     const [selectedGender, setSelectedGender] = useState('');
@@ -82,28 +83,137 @@ const WeddingDatingForm = () => {
 
     const handleSubmit = async () => {
         if (!selectedGender) {
-            alert('נא לבחור מין');
+            alert('❌ נא לבחור מין (גבר או אישה) כדי להמשיך');
+            return;
+        }
+
+        // בדיקות צד לקוח מפורטות
+        const errors = [];
+
+        // בדיקת שדות חובה
+        if (!formData.name || !formData.name.trim()) {
+            errors.push('• שם מלא הוא שדה חובה');
+        }
+
+        if (!formData.age) {
+            errors.push('• גיל הוא שדה חובה');
+        } else {
+            const ageNumber = parseInt(formData.age);
+            if (isNaN(ageNumber)) {
+                errors.push('• גיל חייב להיות מספר');
+            } else if (ageNumber < 18) {
+                errors.push('• גיל מינימלי הוא 18 שנים');
+            } else if (ageNumber > 99) {
+                errors.push('• גיל מקסימלי הוא 99 שנים');
+            }
+        }
+
+        if (!formData.status) {
+            errors.push('• נא לבחור סטטוס משפחתי');
+        }
+
+        if (!formData.phone || !formData.phone.trim()) {
+            errors.push('• מספר טלפון הוא שדה חובה');
+        } else {
+            // בדיקה בסיסית של פורמט טלפון
+            const phonePattern = /^[\d\-\s\+\(\)]+$/;
+            if (!phonePattern.test(formData.phone.trim())) {
+                errors.push('• מספר טלפון חייב להכיל רק ספרות, מקפים, רווחים או סוגריים');
+            }
+        }
+
+        // בדיקת גובה (אם הוזן)
+        if (formData.height && formData.height.trim()) {
+            const heightNumber = parseInt(formData.height);
+            if (isNaN(heightNumber)) {
+                errors.push('• גובה חייב להיות מספר');
+            } else if (heightNumber < 140) {
+                errors.push('• גובה מינימלי הוא 140 ס"מ');
+            } else if (heightNumber > 220) {
+                errors.push('• גובה מקסימלי הוא 220 ס"מ');
+            }
+        }
+
+        // אם יש שגיאות, הצג אותן למשתמש
+        if (errors.length > 0) {
+            alert(`❌ נמצאו שגיאות בטופס:\n\n${errors.join('\n')}\n\nנא לתקן ולנסות שוב.`);
             return;
         }
 
         setIsSubmitting(true);
 
-        // יצירת אובייקט הנתונים עם המין
-        const submissionData = {
-            gender: selectedGender,
-            list: selectedGender === 'male' ? 'רווקים' : 'רווקות',
-            ...formData,
-            submittedAt: new Date().toISOString()
-        };
+        try {
+            // יצירת FormData לשליחת הטופס עם התמונה
+            const formDataToSend = new FormData();
 
-        // כאן תהיה השליחה לשרת
-        console.log('שליחה לרשימת:', submissionData.list, submissionData);
+            // הוספת כל השדות
+            formDataToSend.append('gender', selectedGender);
+            formDataToSend.append('name', formData.name.trim());
+            formDataToSend.append('age', formData.age);
+            formDataToSend.append('status', formData.status);
+            formDataToSend.append('phone', formData.phone.trim());
 
-        // סימולציה של שליחת הטופס
-        setTimeout(() => {
-            setIsSubmitting(false);
+            // שדות אופציונליים - רק אם לא ריקים
+            if (formData.height && formData.height.trim()) {
+                formDataToSend.append('height', formData.height.trim());
+            }
+            if (formData.location && formData.location.trim()) {
+                formDataToSend.append('location', formData.location.trim());
+            }
+            if (formData.community && formData.community.trim()) {
+                formDataToSend.append('community', formData.community.trim());
+            }
+            if (formData.religiosity) {
+                formDataToSend.append('religiosity', formData.religiosity);
+            }
+            if (formData.service && formData.service.trim()) {
+                formDataToSend.append('service', formData.service.trim());
+            }
+            if (formData.occupation && formData.occupation.trim()) {
+                formDataToSend.append('occupation', formData.occupation.trim());
+            }
+            if (formData.education && formData.education.trim()) {
+                formDataToSend.append('education', formData.education.trim());
+            }
+            if (formData.personality && formData.personality.trim()) {
+                formDataToSend.append('personality', formData.personality.trim());
+            }
+            if (formData.lookingFor && formData.lookingFor.trim()) {
+                formDataToSend.append('lookingFor', formData.lookingFor.trim());
+            }
+
+            // הוספת התמונה אם קיימת
+            if (formData.photo) {
+                formDataToSend.append('photo', formData.photo);
+            }
+
+            // שליחה לשרת
+            const response = await apiCall(API.addParticipant(formDataToSend));
+
+            console.log('✅ נשלח בהצלחה:', response);
             setIsSubmitted(true);
-        }, 2000);
+
+        } catch (error) {
+            console.error('❌ שגיאה בשליחה:', error);
+
+            // הצגת שגיאות מפורטות מהשרת
+            let errorMessage = 'שגיאה בשליחת הטופס';
+
+            if (error.message.includes('errors') && error.response) {
+                // אם יש שגיאות מפורטות מהשרת
+                errorMessage = `❌ ${error.message}`;
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage = '❌ שגיאת חיבור לשרת. נא לבדוק שהשרת פועל ולנסות שוב.';
+            } else if (error.message.includes('NetworkError')) {
+                errorMessage = '❌ שגיאת רשת. נא לבדוק את החיבור לאינטרנט ולנסות שוב.';
+            } else {
+                errorMessage = `❌ שגיאה: ${error.message}`;
+            }
+
+            alert(errorMessage);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (isSubmitted) {
@@ -242,6 +352,8 @@ const WeddingDatingForm = () => {
                                 <option value="רווק/ה">רווק/ה</option>
                                 <option value="גרוש/ה">גרוש/ה</option>
                                 <option value="אלמן/ה">אלמן/ה</option>
+                                <option value="גרוש/ה עם ילדים">גרוש/ה עם ילדים</option>
+                                <option value="אחר">אחר</option>
                             </select>
                         </div>
 
@@ -291,6 +403,7 @@ const WeddingDatingForm = () => {
                                 <option value="מסורתי">מסורתי</option>
                                 <option value="דתי">דתי</option>
                                 <option value="חרדי">חרדי</option>
+                                <option value="אחר">אחר</option>
                             </select>
                         </div>
 

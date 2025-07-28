@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Users, User, Heart, Phone, MapPin, GraduationCap, Briefcase, ChevronDown, ChevronUp, Calendar, Shield, Star } from 'lucide-react';
-import { API } from '../api/config.js';
+import React, {useEffect, useState} from 'react';
+import {Briefcase, Calendar, ChevronDown, Heart, MapPin, Phone, Star, User, Users} from 'lucide-react';
+import {API, apiCall} from '../api/config.js';
 
 const AdminDashboard = () => {
     const [males, setMales] = useState([]);
@@ -17,21 +17,23 @@ const AdminDashboard = () => {
     const loadData = async () => {
         try {
             setLoading(true);
+            setError('');
 
-            // סימולציה של קריאה לשרת (כרגע)
-            // בפרודקשן זה יהיה:
-            // const malesResponse = await fetch(API.getMales().url);
-            // const femalesResponse = await fetch(API.getFemales().url);
+            // קבלת נתונים בפועל מהשרת
+            const [malesResponse, femalesResponse] = await Promise.all([
+                apiCall(API.getMales()),
+                apiCall(API.getFemales())
+            ]);
 
-            // זמני - נתונים ריקים
-            setTimeout(() => {
-                setMales([]);
-                setFemales([]);
-                setLoading(false);
-            }, 1000);
+            setMales(malesResponse.participants || []);
+            setFemales(femalesResponse.participants || []);
+
+            console.log(`📋 נטענו ${malesResponse.participants?.length || 0} רווקים ו-${femalesResponse.participants?.length || 0} רווקות`);
 
         } catch (err) {
-            setError('שגיאה בטעינת הנתונים');
+            console.error('❌ שגיאה בטעינת נתונים:', err);
+            setError(`שגיאה בטעינת הנתונים: ${err.message}`);
+        } finally {
             setLoading(false);
         }
     };
@@ -42,13 +44,14 @@ const AdminDashboard = () => {
     };
 
     // רכיב משתמש בודד
-    const UserCard = ({ user, gender }) => {
+    const UserCard = ({user, gender}) => {
         const isExpanded = expandedUser === user.id;
         const bgColor = gender === 'male' ? 'from-blue-50 to-indigo-50' : 'from-pink-50 to-purple-50';
         const accentColor = gender === 'male' ? 'blue' : 'pink';
 
         return (
-            <div className={`bg-gradient-to-r ${bgColor} rounded-2xl shadow-lg mb-4 overflow-hidden transition-all duration-300`}>
+            <div
+                className={`bg-gradient-to-r ${bgColor} rounded-2xl shadow-lg mb-4 overflow-hidden transition-all duration-300`}>
                 {/* כותרת משתמש - תמיד גלויה */}
                 <div
                     className="p-6 cursor-pointer hover:bg-white/50 transition-all duration-200"
@@ -58,21 +61,29 @@ const AdminDashboard = () => {
                         <div className="flex items-center gap-4">
                             {/* תמונת פרופיל */}
                             <div className="relative">
-                                {user.photo ? (
+                                {user.photo?.filename ? (
                                     <img
-                                        src={user.photo}
+                                        src={API.getPhotoUrl(user.photo.filename)}
                                         alt={user.name}
                                         className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+                                        onError={(e) => {
+                                            // אם התמונה לא נטענת, הצג אייקון ברירת מחדל
+                                            e.target.style.display = 'none';
+                                            e.target.nextSibling.style.display = 'flex';
+                                        }}
                                     />
-                                ) : (
-                                    <div className={`w-16 h-16 rounded-full bg-${accentColor}-500 flex items-center justify-center border-4 border-white shadow-lg`}>
-                                        <User className="text-white" size={28} />
-                                    </div>
-                                )}
-                                <div className={`absolute -bottom-1 -right-1 w-6 h-6 bg-${accentColor}-500 rounded-full flex items-center justify-center`}>
-                                    <span className="text-white text-xs font-bold">
-                                        {gender === 'male' ? '👨' : '👩'}
-                                    </span>
+                                ) : null}
+                                <div
+                                    className={`w-16 h-16 rounded-full bg-${accentColor}-500 flex items-center justify-center border-4 border-white shadow-lg ${user.photo?.filename ? 'hidden' : 'flex'}`}
+                                    style={{display: user.photo?.filename ? 'none' : 'flex'}}
+                                >
+                                    <User className="text-white" size={28}/>
+                                </div>
+                                <div
+                                    className={`absolute -bottom-1 -right-1 w-6 h-6 bg-${accentColor}-500 rounded-full flex items-center justify-center`}>
+        <span className="text-white text-xs font-bold">
+            {gender === 'male' ? '👨' : '👩'}
+        </span>
                                 </div>
                             </div>
 
@@ -81,12 +92,12 @@ const AdminDashboard = () => {
                                 <h3 className="text-xl font-bold text-gray-800">{user.name}</h3>
                                 <div className="flex items-center gap-4 text-gray-600 mt-1">
                                     <span className="flex items-center gap-1">
-                                        <Calendar size={16} />
+                                        <Calendar size={16}/>
                                         {user.age} שנים
                                     </span>
                                     {user.location && (
                                         <span className="flex items-center gap-1">
-                                            <MapPin size={16} />
+                                            <MapPin size={16}/>
                                             {user.location}
                                         </span>
                                     )}
@@ -95,8 +106,9 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* כפתור פתיחה/סגירה */}
-                        <div className={`p-2 rounded-full bg-${accentColor}-100 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                            <ChevronDown className={`text-${accentColor}-600`} size={24} />
+                        <div
+                            className={`p-2 rounded-full bg-${accentColor}-100 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                            <ChevronDown className={`text-${accentColor}-600`} size={24}/>
                         </div>
                     </div>
                 </div>
@@ -108,7 +120,7 @@ const AdminDashboard = () => {
                             {/* פרטים אישיים */}
                             <div className="space-y-4">
                                 <h4 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-                                    <User size={20} />
+                                    <User size={20}/>
                                     פרטים אישיים
                                 </h4>
 
@@ -135,7 +147,7 @@ const AdminDashboard = () => {
                             {/* פרטים מקצועיים */}
                             <div className="space-y-4">
                                 <h4 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-                                    <Briefcase size={20} />
+                                    <Briefcase size={20}/>
                                     רקע מקצועי
                                 </h4>
 
@@ -160,7 +172,7 @@ const AdminDashboard = () => {
                         {user.personality && (
                             <div className="mt-6">
                                 <h4 className="font-bold text-lg text-gray-800 flex items-center gap-2 mb-3">
-                                    <Star size={20} />
+                                    <Star size={20}/>
                                     תכונות אופי
                                 </h4>
                                 <p className="text-gray-700 bg-white/70 p-4 rounded-xl leading-relaxed">
@@ -173,7 +185,7 @@ const AdminDashboard = () => {
                         {user.lookingFor && (
                             <div className="mt-6">
                                 <h4 className="font-bold text-lg text-gray-800 flex items-center gap-2 mb-3">
-                                    <Heart size={20} />
+                                    <Heart size={20}/>
                                     מחפש/ת
                                 </h4>
                                 <p className="text-gray-700 bg-white/70 p-4 rounded-xl leading-relaxed">
@@ -186,14 +198,14 @@ const AdminDashboard = () => {
                         <div className="mt-6 pt-4 border-t border-white/50">
                             <div className="flex items-center justify-between">
                                 <h4 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-                                    <Phone size={20} />
+                                    <Phone size={20}/>
                                     יצירת קשר
                                 </h4>
                                 <a
                                     href={`tel:${user.phone}`}
                                     className={`bg-${accentColor}-500 hover:bg-${accentColor}-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-200 flex items-center gap-2`}
                                 >
-                                    <Phone size={18} />
+                                    <Phone size={18}/>
                                     {user.phone}
                                 </a>
                             </div>
@@ -205,7 +217,7 @@ const AdminDashboard = () => {
     };
 
     // רכיב רשימה
-    const UsersList = ({ users, title, gender, icon: Icon, emptyMessage }) => {
+    const UsersList = ({users, title, gender, icon: Icon, emptyMessage}) => {
         const bgGradient = gender === 'male' ? 'from-blue-500 to-indigo-600' : 'from-pink-500 to-purple-600';
 
         return (
@@ -214,7 +226,7 @@ const AdminDashboard = () => {
                 <div className={`bg-gradient-to-r ${bgGradient} text-white p-6 rounded-2xl mb-6`}>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <Icon size={32} />
+                            <Icon size={32}/>
                             <div>
                                 <h2 className="text-2xl font-bold">{title}</h2>
                                 <p className="text-white/90">
@@ -285,7 +297,7 @@ const AdminDashboard = () => {
                 <div className="text-center mb-12">
                     <div className="flex justify-center mb-6">
                         <div className="bg-white p-6 rounded-full shadow-xl">
-                            <Heart className="text-red-500" size={48} />
+                            <Heart className="text-red-500" size={48}/>
                         </div>
                     </div>
                     <h1 className="text-5xl font-bold text-gray-800 mb-4">רשימת המשתתפים</h1>
