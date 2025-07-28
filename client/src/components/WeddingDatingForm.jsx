@@ -223,7 +223,7 @@ const WeddingDatingForm = () => {
                     <CheckCircle className="mx-auto text-green-500 mb-6" size={80} />
                     <h2 className="text-3xl font-bold text-gray-800 mb-6">תודה רבה!</h2>
                     <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                        הפרטים שלך נשלחו בהצלחה לרשימת ה{selectedGender === 'male' ? 'רווקים' : 'רווקות'}.
+                        הפרטים שלך נשלחו בהצלחה!
                         החתן והכלה יקבלו את המידע ויוכלו ליצור איתך קשר.
                     </p>
                     <div className={`${colors.successBg} p-6 rounded-2xl`}>
@@ -252,7 +252,6 @@ const WeddingDatingForm = () => {
 
                 {/* בחירת מין */}
                 <div className="bg-white rounded-3xl shadow-xl p-6 mb-8">
-                    <h3 className="text-xl font-bold text-gray-800 mb-6 text-center">אני:</h3>
                     <div className="grid grid-cols-2 gap-4">
                         <button
                             onClick={() => setSelectedGender('male')}
@@ -367,7 +366,6 @@ const WeddingDatingForm = () => {
                                 value={formData.location}
                                 onChange={(e) => handleInputChange('location', e.target.value)}
                                 className={`w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
-                                placeholder="תל אביב, ירושלים..."
                             />
                         </div>
 
@@ -469,7 +467,7 @@ const WeddingDatingForm = () => {
                         {/* אני מחפש */}
                         <div className="space-y-3">
                             <label htmlFor="lookingFor" className="block text-base font-bold text-gray-700">
-                                אני מחפש/ת
+                                 מחפש/ת
                             </label>
                             <textarea
                                 id="lookingFor"
@@ -495,7 +493,7 @@ const WeddingDatingForm = () => {
                                     value={formData.phone}
                                     onChange={(e) => handleInputChange('phone', e.target.value)}
                                     className={`w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
-                                    placeholder="050-1234567"
+                                    placeholder="הזן מספר טלפון.."
                                 />
                             </div>
                         </div>
