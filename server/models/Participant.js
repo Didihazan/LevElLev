@@ -24,20 +24,27 @@ const participantSchema = new mongoose.Schema({
     age: {
         type: Number,
         required: true,
-        min: 18,
-        max: 99
+        min: [18, 'גיל מינימלי הוא 18'],
+        max: [99, 'גיל מקסימלי הוא 99']
     },
 
     status: {
         type: String,
         required: true,
-        enum: ['רווק/ה', 'גרוש/ה','גרוש עם ילדים' ,'אלמן/ה']
+        enum: ['רווק/ה', 'גרוש/ה', 'אלמן/ה']
     },
 
     height: {
         type: Number,
-        min: 140,
-        max: 220
+        min: [140, 'גובה מינימלי הוא 140 ס"מ'],
+        max: [220, 'גובה מקסימלי הוא 220 ס"מ'],
+        validate: {
+            validator: function(v) {
+                // אם הגובה לא הוזן, זה תקין
+                return v === undefined || v === null || (v >= 140 && v <= 220);
+            },
+            message: 'גובה חייב להיות בין 140-220 ס"מ או ריק'
+        }
     },
 
     location: {
@@ -53,7 +60,7 @@ const participantSchema = new mongoose.Schema({
 
     religiosity: {
         type: String,
-        enum: ['חילוני', 'מסורתי', 'דתי', 'חרדי','אחר ', '']
+        enum: ['חילוני', 'מסורתי', 'דתי', 'חרדי', '']
     },
 
     // רקע מקצועי
@@ -90,12 +97,13 @@ const participantSchema = new mongoose.Schema({
         trim: true
     },
 
-    // תמונה
+    // תמונה מ-Cloudinary
     photo: {
-        filename: String,
-        originalName: String,
-        size: Number,
-        mimetype: String
+        cloudinaryUrl: String,   // URL מלא לתמונה
+        publicId: String,        // מזהה ב-Cloudinary
+        originalName: String,    // שם מקורי
+        size: Number,           // גודל בבתים
+        format: String          // פורמט (jpg, png, etc.)
     },
 
     // זמני יצירה ועדכון
@@ -104,13 +112,19 @@ const participantSchema = new mongoose.Schema({
         default: Date.now
     }
 }, {
-    timestamps: true
+    timestamps: true // יוסיף createdAt ו-updatedAt אוטומטית
 });
 
 // אינדקסים לביצועים
 participantSchema.index({ gender: 1 });
 participantSchema.index({ list: 1 });
 participantSchema.index({ submittedAt: -1 });
+
+// מתודה להחזרת נתונים ללא פרטים רגישים
+participantSchema.methods.toSafeObject = function() {
+    const participant = this.toObject();
+    return participant;
+};
 
 // מתודה סטטית לקבלת משתתפים לפי מין
 participantSchema.statics.findByGender = function(gender) {

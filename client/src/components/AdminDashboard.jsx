@@ -38,14 +38,16 @@ const AdminDashboard = () => {
         }
     };
 
-    // פתיחה/סגירה של אקורדיון
+    // פתיחה/סגירה של אקורדיון - רק אחד בכל פעם
     const toggleUser = (userId) => {
         setExpandedUser(expandedUser === userId ? null : userId);
     };
 
     // רכיב משתמש בודד
     const UserCard = ({user, gender}) => {
-        const isExpanded = expandedUser === user.id;
+        // השתמש ב-_id של מונגו או ב-submittedAt כמזהה ייחודי
+        const uniqueId = user._id || user.id || `${user.name}-${user.submittedAt}`;
+        const isExpanded = expandedUser === uniqueId;
         const bgColor = gender === 'male' ? 'from-blue-50 to-indigo-50' : 'from-pink-50 to-purple-50';
         const accentColor = gender === 'male' ? 'blue' : 'pink';
 
@@ -55,19 +57,18 @@ const AdminDashboard = () => {
                 {/* כותרת משתמש - תמיד גלויה */}
                 <div
                     className="p-6 cursor-pointer hover:bg-white/50 transition-all duration-200"
-                    onClick={() => toggleUser(user.id)}
+                    onClick={() => toggleUser(uniqueId)}
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             {/* תמונת פרופיל */}
                             <div className="relative">
-                                {user.photo?.filename ? (
+                                {user.photo?.cloudinaryUrl ? (
                                     <img
-                                        src={API.getPhotoUrl(user.photo.filename)}
+                                        src={user.photo.cloudinaryUrl}
                                         alt={user.name}
                                         className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
                                         onError={(e) => {
-                                            // אם התמונה לא נטענת, הצג אייקון ברירת מחדל
                                             e.target.style.display = 'none';
                                             e.target.nextSibling.style.display = 'flex';
                                         }}
@@ -75,15 +76,15 @@ const AdminDashboard = () => {
                                 ) : null}
                                 <div
                                     className={`w-16 h-16 rounded-full bg-${accentColor}-500 flex items-center justify-center border-4 border-white shadow-lg ${user.photo?.filename ? 'hidden' : 'flex'}`}
-                                    style={{display: user.photo?.filename ? 'none' : 'flex'}}
+                                    style={{display: user.photo?.cloudinaryUrl ? 'none' : 'flex'}}
                                 >
                                     <User className="text-white" size={28}/>
                                 </div>
                                 <div
                                     className={`absolute -bottom-1 -right-1 w-6 h-6 bg-${accentColor}-500 rounded-full flex items-center justify-center`}>
-        <span className="text-white text-xs font-bold">
-            {gender === 'male' ? '👨' : '👩'}
-        </span>
+                                    <span className="text-white text-xs font-bold">
+                                        {gender === 'male' ? '👨' : '👩'}
+                                    </span>
                                 </div>
                             </div>
 
@@ -243,13 +244,16 @@ const AdminDashboard = () => {
                 {/* רשימת משתמשים */}
                 <div className="space-y-4">
                     {users.length > 0 ? (
-                        users.map(user => (
-                            <UserCard
-                                key={user.id}
-                                user={user}
-                                gender={gender}
-                            />
-                        ))
+                        users.map(user => {
+                            const uniqueKey = user._id || user.id || `${user.name}-${user.submittedAt}`;
+                            return (
+                                <UserCard
+                                    key={uniqueKey}
+                                    user={user}
+                                    gender={gender}
+                                />
+                            );
+                        })
                     ) : (
                         <div className="text-center py-12 text-gray-500">
                             <div className="text-6xl mb-4">📭</div>

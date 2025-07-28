@@ -316,7 +316,6 @@ const WeddingDatingForm = () => {
                                     value={formData.age}
                                     onChange={(e) => handleInputChange('age', e.target.value)}
                                     className={`w-full px-4 py-4 text-lg text-center border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
-                                    placeholder="25"
                                 />
                             </div>
                             <div className="space-y-3">
@@ -331,7 +330,7 @@ const WeddingDatingForm = () => {
                                     value={formData.height}
                                     onChange={(e) => handleInputChange('height', e.target.value)}
                                     className={`w-full px-4 py-4 text-lg text-center border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
-                                    placeholder="170"
+                                    placeholder="לדוגמא 170"
                                 />
                             </div>
                         </div>
@@ -383,7 +382,6 @@ const WeddingDatingForm = () => {
                                 value={formData.community}
                                 onChange={(e) => handleInputChange('community', e.target.value)}
                                 className={`w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
-                                placeholder="אשכנזי, ספרדי, מזרחי..."
                             />
                         </div>
 
@@ -402,6 +400,7 @@ const WeddingDatingForm = () => {
                                 <option value="חילוני">חילוני</option>
                                 <option value="מסורתי">מסורתי</option>
                                 <option value="דתי">דתי</option>
+                                <option value="דתי">דתי לאומי</option>
                                 <option value="חרדי">חרדי</option>
                                 <option value="אחר">אחר</option>
                             </select>
@@ -530,12 +529,12 @@ const WeddingDatingForm = () => {
                             {isSubmitting ? (
                                 <>
                                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                                    <span>שולח לרשימת ה{selectedGender === 'male' ? 'רווקים' : 'רווקות'}...</span>
+                                    <span>שולח...</span>
                                 </>
                             ) : (
                                 <>
                                     <Send size={24} />
-                                    <span>שלח לרשימת ה{selectedGender === 'male' ? 'רווקים' : 'רווקות'}</span>
+                                    <span>שלח</span>
                                 </>
                             )}
                         </button>

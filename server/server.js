@@ -18,7 +18,10 @@ connectDB();
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:5173', // הכתובת של הלקוח Vite
+    origin: [
+        'http://localhost:5173',        // פיתוח מקומי
+        'https://lev-el-lev.vercel.app' // פרודקשן
+    ],
     credentials: true
 }));
 

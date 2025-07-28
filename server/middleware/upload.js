@@ -1,51 +1,36 @@
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import multer from 'multer';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
 
-// יצירת תיקיית uploads אם לא קיימת
-const uploadDir = 'uploads/photos';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-    console.log('📁 תיקיית uploads נוצרה');
-}
-
-// הגדרת אחסון
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        // יצירת שם קובץ ייחודי
-        const uniqueId = uuidv4();
-        const fileExtension = path.extname(file.originalname);
-        const filename = `photo_${uniqueId}${fileExtension}`;
-        cb(null, filename);
-    }
+// הגדרת Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// פילטר לסוגי קבצים מותרים
-const fileFilter = (req, file, cb) => {
-    // סוגי תמונות מותרים
-    const allowedMimeTypes = [
-        'image/jpeg',
-        'image/jpg',
-        'image/png',
-        'image/gif',
-        'image/webp'
-    ];
-
-    if (allowedMimeTypes.includes(file.mimetype)) {
-        cb(null, true);
-    } else {
-        cb(new Error('סוג קובץ לא נתמך. רק תמונות מותרות (JPEG, PNG, GIF, WebP)'), false);
-    }
-};
+// הגדרת אחסון ב-Cloudinary
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'wedding-photos', // תיקיה ב-Cloudinary
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+        transformation: [
+            {
+                width: 500,
+                height: 500,
+                crop: 'fill',
+                quality: 'auto:good',
+                fetch_format: 'auto'
+            }
+        ],
+        public_id: (req, file) => `photo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    },
+});
 
 // יצירת multer instance
 const upload = multer({
     storage: storage,
-    fileFilter: fileFilter,
     limits: {
         fileSize: 5 * 1024 * 1024, // 5MB מקסימום
         files: 1 // קובץ אחד בלבד
@@ -54,6 +39,8 @@ const upload = multer({
 
 // middleware לטיפול בשגיאות העלאה
 const handleUploadErrors = (error, req, res, next) => {
+    console.error('שגיאה בהעלאת תמונה:', error);
+
     if (error instanceof multer.MulterError) {
         let message = '';
 
@@ -78,16 +65,16 @@ const handleUploadErrors = (error, req, res, next) => {
         });
     }
 
-    if (error.message.includes('סוג קובץ לא נתמך')) {
-        return res.status(400).json({
+    // שגיאות Cloudinary
+    if (error.name === 'Error' && error.message.includes('cloudinary')) {
+        return res.status(500).json({
             success: false,
-            message: 'סוג קובץ לא נתמך. רק תמונות מותרות (JPEG, PNG, GIF, WebP)',
-            errorType: 'FILE_TYPE_ERROR'
+            message: 'שגיאה בשירות התמונות. נסה שוב מאוחר יותר.',
+            errorType: 'CLOUDINARY_ERROR'
         });
     }
 
     next(error);
 };
 
-// export של middleware-ים
 export { upload, handleUploadErrors };

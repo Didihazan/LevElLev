@@ -1,6 +1,6 @@
 import express from 'express';
 import Participant from '../models/Participant.js';
-import { upload, handleUploadErrors } from '../middleware/upload.js';
+import { upload, handleUploadErrors } from '../middleware/cloudinaryUpload.js';
 
 const router = express.Router();
 
@@ -26,13 +26,14 @@ router.post('/', upload.single('photo'), handleUploadErrors, async (req, res) =>
             submittedAt: new Date()
         };
 
-        // אם הועלתה תמונה
+        // אם הועלתה תמונה ל-Cloudinary
         if (req.file) {
             participantData.photo = {
-                filename: req.file.filename,
-                originalName: req.file.originalname,
-                size: req.file.size,
-                mimetype: req.file.mimetype
+                cloudinaryUrl: req.file.path,        // URL מלא מ-Cloudinary
+                publicId: req.file.filename,         // מזהה ב-Cloudinary למחיקה עתידית
+                originalName: req.file.originalname, // שם המקורי
+                size: req.file.bytes,               // גודל בבתים
+                format: req.file.format             // פורמט התמונה
             };
         }
 

@@ -1,4 +1,16 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+// זיהוי אוטומטי של סביבת הפעלה
+const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
+
+const API_BASE_URL = isDevelopment
+    ? 'http://localhost:5000/api'  // פיתוח - השרת המקומי שלך
+    : 'https://YOUR_VERCEL_SERVER_URL/api';  // פרודקשן - תחליף לכתובת השרת בVercel
+
+// אפשרות נוספת - זיהוי לפי hostname
+// const API_BASE_URL = window.location.hostname === 'localhost'
+//     ? 'http://localhost:5000/api'
+//     : 'https://YOUR_VERCEL_SERVER_URL/api';
+
+console.log(`🌐 API Base URL: ${API_BASE_URL} (${isDevelopment ? 'Development' : 'Production'})`);
 
 export const API = {
     // בדיקת תקינות השרת
@@ -32,8 +44,13 @@ export const API = {
         method: 'GET'
     }),
 
-    // URL לתמונות
-    getPhotoUrl: (filename) => `http://localhost:5000/uploads/photos/${filename}`
+    // URL לתמונות מ-Cloudinary
+    getPhotoUrl: (photo) => {
+        if (photo?.cloudinaryUrl) {
+            return photo.cloudinaryUrl;
+        }
+        return null; // או תמונת ברירת מחדל
+    }
 };
 
 // פונקציית עזר לביצוע קריאות API
