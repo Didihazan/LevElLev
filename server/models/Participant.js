@@ -91,6 +91,11 @@ const participantSchema = new mongoose.Schema({
     },
 
     // יצירת קשר
+    contactName: {
+        type: String,
+        trim: true
+    },
+
     phone: {
         type: String,
         required: true,

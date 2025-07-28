@@ -202,13 +202,20 @@ const AdminDashboard = () => {
                                     <Phone size={20}/>
                                     יצירת קשר
                                 </h4>
-                                <a
-                                    href={`tel:${user.phone}`}
-                                    className={`bg-${accentColor}-500 hover:bg-${accentColor}-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-200 flex items-center gap-2`}
-                                >
-                                    <Phone size={18}/>
-                                    {user.phone}
-                                </a>
+                                <div className="text-left">
+                                    {user.contactName && (
+                                        <p className="text-sm text-gray-600 mb-1">
+                                            {user.contactName}
+                                        </p>
+                                    )}
+                                    <a
+                                        href={`tel:${user.phone}`}
+                                        className={`bg-${accentColor}-500 hover:bg-${accentColor}-600 text-white px-6 py-3 rounded-xl font-bold transition-all duration-200 flex items-center gap-2`}
+                                    >
+                                        <Phone size={18}/>
+                                        {user.phone}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

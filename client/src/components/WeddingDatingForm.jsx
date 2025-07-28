@@ -17,6 +17,7 @@ const WeddingDatingForm = () => {
         education: '',
         personality: '',
         lookingFor: '',
+        contactName: '',
         phone: '',
         photo: null
     });
@@ -180,6 +181,9 @@ const WeddingDatingForm = () => {
             }
             if (formData.lookingFor && formData.lookingFor.trim()) {
                 formDataToSend.append('lookingFor', formData.lookingFor.trim());
+            }
+            if (formData.contactName && formData.contactName.trim()) {
+                formDataToSend.append('contactName', formData.contactName.trim());
             }
 
             // הוספת התמונה אם קיימת
@@ -419,20 +423,6 @@ const WeddingDatingForm = () => {
                             />
                         </div>
 
-                        {/* עיסוק */}
-                        <div className="space-y-3">
-                            <label htmlFor="occupation" className="block text-base font-bold text-gray-700">
-                                עיסוק
-                            </label>
-                            <input
-                                id="occupation"
-                                type="text"
-                                value={formData.occupation}
-                                onChange={(e) => handleInputChange('occupation', e.target.value)}
-                                className={`w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
-                                placeholder="מה המקצוע שלך?"
-                            />
-                        </div>
 
                         {/* השכלה */}
                         <div className="space-y-3">
@@ -446,6 +436,21 @@ const WeddingDatingForm = () => {
                                 onChange={(e) => handleInputChange('education', e.target.value)}
                                 className={`w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
                                 placeholder="תואר ראשון, תיכון..."
+                            />
+                        </div>
+
+                        {/* עיסוק */}
+                        <div className="space-y-3">
+                            <label htmlFor="occupation" className="block text-base font-bold text-gray-700">
+                                עיסוק
+                            </label>
+                            <input
+                                id="occupation"
+                                type="text"
+                                value={formData.occupation}
+                                onChange={(e) => handleInputChange('occupation', e.target.value)}
+                                className={`w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
+                                placeholder="מה המקצוע שלך?"
                             />
                         </div>
 
@@ -479,22 +484,46 @@ const WeddingDatingForm = () => {
                             />
                         </div>
 
-                        {/* טלפון */}
-                        <div className="space-y-3">
-                            <label htmlFor="phone" className="block text-base font-bold text-gray-700">
-                                טלפון לבירורים *
-                            </label>
-                            <div className="relative">
-                                <Phone className="absolute right-4 top-4 text-gray-400" size={24} />
-                                <input
-                                    id="phone"
-                                    type="tel"
-                                    required
-                                    value={formData.phone}
-                                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                                    className={`w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
-                                    placeholder="הזן מספר טלפון.."
-                                />
+                        {/* איש קשר לבירורים */}
+                        <div className="space-y-6">
+                            <h3 className="text-lg font-bold text-gray-800 border-b pb-2">איש קשר לבירורים</h3>
+
+                            {/* שם איש הקשר */}
+                            <div className="space-y-3">
+                                <label htmlFor="contactName" className="block text-base font-bold text-gray-700">
+                                    שם איש הקשר
+                                </label>
+                                <div className="relative">
+                                    <User className="absolute right-4 top-4 text-gray-400" size={24} />
+                                    <input
+                                        id="contactName"
+                                        type="text"
+                                        value={formData.contactName}
+                                        onChange={(e) => handleInputChange('contactName', e.target.value)}
+                                        className={`w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
+                                        placeholder="שם האדם ליצירת קשר (אופציונלי)"
+                                    />
+                                </div>
+                                <p className="text-sm text-gray-500">אופציונלי - למשל: אבא, אמא, אח/ות</p>
+                            </div>
+
+                            {/* מספר טלפון */}
+                            <div className="space-y-3">
+                                <label htmlFor="phone" className="block text-base font-bold text-gray-700">
+                                    מספר טלפון *
+                                </label>
+                                <div className="relative">
+                                    <Phone className="absolute right-4 top-4 text-gray-400" size={24} />
+                                    <input
+                                        id="phone"
+                                        type="tel"
+                                        required
+                                        value={formData.phone}
+                                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                                        className={`w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
+                                        placeholder="הזנ/י מספר טלפון"
+                                    />
+                                </div>
                             </div>
                         </div>
 
