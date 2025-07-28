@@ -3,7 +3,7 @@ const isDevelopment = import.meta.env.DEV || window.location.hostname === 'local
 
 const API_BASE_URL = isDevelopment
     ? 'http://localhost:5000/api'  // פיתוח - השרת המקומי שלך
-    : 'https://lev-el-lev-server.vercel.app/api';  // פרודקשן - תחליף לכתובת השרת בVercel
+    : 'https://levellev-server.onrender.com/api';  // פרודקשן - תחליף לכתובת השרת בVercel
 
 
 console.log(`🌐 API Base URL: ${API_BASE_URL} (${isDevelopment ? 'Development' : 'Production'})`);
