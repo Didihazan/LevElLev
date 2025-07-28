@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* כאן אפשר להוסיף CSS מותאם אישית */
+:root {
+  --primary-color: #3b82f6;
+}
