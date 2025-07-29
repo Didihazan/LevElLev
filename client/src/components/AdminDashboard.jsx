@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Briefcase, Calendar, ChevronDown, Heart, MapPin, Phone, Star, User, Users, Trash2} from 'lucide-react';
 import {API, apiCall} from '../api/config.js';
+import ImageModal from './ImageModal.jsx'; // ✅ Import הקומפוננטה החדשה
 
 const AdminDashboard = () => {
     const [males, setMales] = useState([]);
@@ -8,7 +9,15 @@ const AdminDashboard = () => {
     const [expandedUser, setExpandedUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [deleting, setDeleting] = useState(null); // ID של המשתתף שנמחק
+    const [deleting, setDeleting] = useState(null);
+
+    // ✅ מצבים למודל התמונה
+    const [imageModal, setImageModal] = useState({
+        isOpen: false,
+        imageUrl: '',
+        userName: '',
+        gender: ''
+    });
 
     // טעינת נתונים מהשרת
     useEffect(() => {
@@ -20,7 +29,6 @@ const AdminDashboard = () => {
             setLoading(true);
             setError('');
 
-            // קבלת נתונים בפועל מהשרת
             const [malesResponse, femalesResponse] = await Promise.all([
                 apiCall(API.getMales()),
                 apiCall(API.getFemales())
@@ -39,12 +47,32 @@ const AdminDashboard = () => {
         }
     };
 
-    // פתיחה/סגירה של אקורדיון - רק אחד בכל פעם
+    // פתיחה/סגירה של אקורדיון
     const toggleUser = (userId) => {
         setExpandedUser(expandedUser === userId ? null : userId);
     };
 
-    // ✅ פונקציה למחיקת משתתף
+    // ✅ פתיחת תמונה במסך מלא
+    const openImageModal = (imageUrl, userName, gender) => {
+        setImageModal({
+            isOpen: true,
+            imageUrl,
+            userName,
+            gender
+        });
+    };
+
+    // ✅ סגירת מודל התמונה
+    const closeImageModal = () => {
+        setImageModal({
+            isOpen: false,
+            imageUrl: '',
+            userName: '',
+            gender: ''
+        });
+    };
+
+    // מחיקת משתתף
     const handleDeleteParticipant = async (user) => {
         const confirmDelete = window.confirm(
             `האם אתה בטוח שברצונך למחוק את ${user.name} מהרשימה?\n\nפעולה זו אינה ניתנת לביטול.`
@@ -61,14 +89,12 @@ const AdminDashboard = () => {
 
             console.log('✅ משתתף נמחק:', response);
 
-            // עדכון הרשימות המקומיות
             if (user.gender === 'male') {
                 setMales(prev => prev.filter(m => m._id !== user._id));
             } else {
                 setFemales(prev => prev.filter(f => f._id !== user._id));
             }
 
-            // סגירת האקורדיון אם היה פתוח
             if (expandedUser === user._id) {
                 setExpandedUser(null);
             }
@@ -85,7 +111,6 @@ const AdminDashboard = () => {
 
     // רכיב משתמש בודד
     const UserCard = ({user, gender}) => {
-        // השתמש ב-_id של מונגו או ב-submittedAt כמזהה ייחודי
         const uniqueId = user._id || user.id || `${user.name}-${user.submittedAt}`;
         const isExpanded = expandedUser === uniqueId;
         const bgColor = gender === 'male' ? 'from-blue-50 to-indigo-50' : 'from-pink-50 to-purple-50';
@@ -95,6 +120,7 @@ const AdminDashboard = () => {
         return (
             <div
                 className={`bg-gradient-to-r ${bgColor} rounded-2xl shadow-lg mb-4 overflow-hidden transition-all duration-300 ${isDeleting ? 'opacity-50' : ''}`}>
+
                 {/* כותרת משתמש - תמיד גלויה */}
                 <div
                     className="p-6 cursor-pointer hover:bg-white/50 transition-all duration-200"
@@ -102,21 +128,26 @@ const AdminDashboard = () => {
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            {/* תמונת פרופיל */}
+                            {/* ✅ תמונת פרופיל - מעודכנת */}
                             <div className="relative">
                                 {user.photo?.cloudinaryUrl ? (
                                     <img
                                         src={user.photo.cloudinaryUrl}
                                         alt={user.name}
-                                        className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
+                                        className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200"
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // ✅ מונע פתיחת האקורדיון
+                                            openImageModal(user.photo.cloudinaryUrl, user.name, gender);
+                                        }}
                                         onError={(e) => {
                                             e.target.style.display = 'none';
                                             e.target.nextSibling.style.display = 'flex';
                                         }}
+                                        title={`לחץ לפתיחת תמונה של ${user.name} במסך מלא`}
                                     />
                                 ) : null}
                                 <div
-                                    className={`w-16 h-16 rounded-full bg-${accentColor}-500 flex items-center justify-center border-4 border-white shadow-lg ${user.photo?.filename ? 'hidden' : 'flex'}`}
+                                    className={`w-16 h-16 rounded-full bg-${accentColor}-500 flex items-center justify-center border-4 border-white shadow-lg ${user.photo?.cloudinaryUrl ? 'hidden' : 'flex'}`}
                                     style={{display: user.photo?.cloudinaryUrl ? 'none' : 'flex'}}
                                 >
                                     <User className="text-white" size={28}/>
@@ -149,10 +180,10 @@ const AdminDashboard = () => {
 
                         {/* כפתורי פעולה */}
                         <div className="flex items-center gap-2">
-                            {/* ✅ כפתור מחיקה */}
+                            {/* כפתור מחיקה */}
                             <button
                                 onClick={(e) => {
-                                    e.stopPropagation(); // מונע פתיחת האקורדיון
+                                    e.stopPropagation();
                                     handleDeleteParticipant(user);
                                 }}
                                 disabled={isDeleting}
@@ -252,6 +283,18 @@ const AdminDashboard = () => {
                                 </h4>
                                 <p className="text-gray-700 bg-white/70 p-4 rounded-xl leading-relaxed">
                                     {user.lookingFor}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* ✅ מידע נוסף - שדה חדש */}
+                        {user.additionalInfo && (
+                            <div className="mt-6">
+                                <h4 className="font-bold text-lg text-gray-800 flex items-center gap-2 mb-3">
+                                    📝 מידע נוסף
+                                </h4>
+                                <p className="text-gray-700 bg-white/70 p-4 rounded-xl leading-relaxed">
+                                    {user.additionalInfo}
                                 </p>
                             </div>
                         )}
@@ -363,44 +406,54 @@ const AdminDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50" dir="rtl">
-            <div className="container mx-auto px-4 py-8">
-                {/* כותרת ראשית */}
-                <div className="text-center mb-12">
-                    <div className="flex justify-center mb-6">
-                        <div className="bg-white p-6 rounded-full shadow-xl">
-                            <Heart className="text-red-500" size={48}/>
+        <>
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50" dir="rtl">
+                <div className="container mx-auto px-4 py-8">
+                    {/* כותרת ראשית */}
+                    <div className="text-center mb-12">
+                        <div className="flex justify-center mb-6">
+                            <div className="bg-white p-6 rounded-full shadow-xl">
+                                <Heart className="text-red-500" size={48}/>
+                            </div>
                         </div>
+                        <h1 className="text-5xl font-bold text-gray-800 mb-4">רשימת המשתתפים</h1>
+                        <p className="text-xl text-gray-600">
+                            סה"כ {males.length + females.length} משתתפים רשומים למציאת זיווג
+                        </p>
                     </div>
-                    <h1 className="text-5xl font-bold text-gray-800 mb-4">רשימת המשתתפים</h1>
-                    <p className="text-xl text-gray-600">
-                        סה"כ {males.length + females.length} משתתפים רשומים למציאת זיווג
-                    </p>
+
+                    {/* רשימות */}
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        {/* רשימת רווקים */}
+                        <UsersList
+                            users={males}
+                            title="רווקים"
+                            gender="male"
+                            icon={Users}
+                            emptyMessage="עדיין לא נרשמו רווקים"
+                        />
+
+                        {/* רשימת רווקות */}
+                        <UsersList
+                            users={females}
+                            title="רווקות"
+                            gender="female"
+                            icon={Users}
+                            emptyMessage="עדיין לא נרשמו רווקות"
+                        />
+                    </div>
                 </div>
-
-                {/* רשימות */}
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                    {/* רשימת רווקים */}
-                    <UsersList
-                        users={males}
-                        title="רווקים"
-                        gender="male"
-                        icon={Users}
-                        emptyMessage="עדיין לא נרשמו רווקים"
-                    />
-
-                    {/* רשימת רווקות */}
-                    <UsersList
-                        users={females}
-                        title="רווקות"
-                        gender="female"
-                        icon={Users}
-                        emptyMessage="עדיין לא נרשמו רווקות"
-                    />
-                </div>
-
             </div>
-        </div>
+
+            {/* ✅ מודל תמונה במסך מלא */}
+            <ImageModal
+                isOpen={imageModal.isOpen}
+                onClose={closeImageModal}
+                imageUrl={imageModal.imageUrl}
+                userName={imageModal.userName}
+                gender={imageModal.gender}
+            />
+        </>
     );
 };
 

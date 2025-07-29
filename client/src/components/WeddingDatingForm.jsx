@@ -18,6 +18,7 @@ const WeddingDatingForm = () => {
         education: '',
         personality: '',
         lookingFor: '',
+        additionalInfo: '',
         contactName: '',
         phone: '',
         photo: null
@@ -193,6 +194,9 @@ const WeddingDatingForm = () => {
             }
             if (formData.contactName && formData.contactName.trim()) {
                 formDataToSend.append('contactName', formData.contactName.trim());
+            }
+            if (formData.additionalInfo && formData.additionalInfo.trim()) {
+                formDataToSend.append('additionalInfo', formData.additionalInfo.trim());
             }
 
             // הוספת התמונה אם קיימת
@@ -371,7 +375,7 @@ const WeddingDatingForm = () => {
                                     <option value="רווק/ה">רווק/ה</option>
                                     <option value="גרוש/ה">גרוש/ה</option>
                                     <option value="אלמן/ה">אלמן/ה</option>
-                                    <option value="גרוש/ה עם ילדים">גרוש/ה עם ילדים</option>
+                                    <option value="גרוש/ה עם ילדים">גרוש/ה עם ילדים</option> {/* ✅ תוקן הערך */}
                                     <option value="אחר">אחר</option>
                                 </select>
                             </div>
@@ -419,9 +423,9 @@ const WeddingDatingForm = () => {
                                     <option value="חילוני">חילוני</option>
                                     <option value="מסורתי">מסורתי</option>
                                     <option value="דתי">דתי</option>
-                                    <option value="דתי">דתי לאומי</option>
+                                    <option value="דתי לאומי">דתי לאומי</option> {/* ✅ תוקן הערך */}
                                     <option value="חרדי">חרדי</option>
-                                    <option value="אחר">אחר</option>
+                                    <option value="אחר">אחר</option> {/* ✅ תוקן הערך */}
                                 </select>
                             </div>
 
@@ -498,6 +502,26 @@ const WeddingDatingForm = () => {
                                     className={`w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent resize-none transition-all duration-200`}
                                     placeholder="מה חשוב לך בבן/בת הזוג?"
                                 />
+                            </div>
+
+                            <div className="space-y-3">
+                                <label htmlFor="additionalInfo" className="block text-base font-bold text-gray-700">
+                                    מידע נוסף
+                                </label>
+                                <textarea
+                                    id="additionalInfo"
+                                    rows={4}
+                                    value={formData.additionalInfo || ''}
+                                    onChange={(e) => handleInputChange('additionalInfo', e.target.value)}
+                                    className={`w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent resize-none transition-all duration-200`}
+                                    placeholder="מידע נוסף שתרצה לשתף מעבר לשדות הקיימים..."
+                                    maxLength="1000"
+                                />
+                                {formData.additionalInfo && (
+                                    <p className="text-sm text-gray-500 text-left">
+                                        {formData.additionalInfo.length}/1000 תווים
+                                    </p>
+                                )}
                             </div>
 
                             {/* איש קשר לבירורים */}

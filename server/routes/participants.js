@@ -28,6 +28,7 @@ router.post('/', upload.single('photo'), handleUploadErrors, async (req, res) =>
             education: req.body.education || undefined,
             personality: req.body.personality || undefined,
             lookingFor: req.body.lookingFor || undefined,
+            additionalInfo: req.body.additionalInfo || undefined,
             contactName: req.body.contactName || undefined,
             phone: req.body.phone,
             submittedAt: new Date()

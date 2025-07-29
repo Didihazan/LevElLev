@@ -31,7 +31,7 @@ const participantSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        enum: ['רווק/ה', 'גרוש/ה', 'אלמן/ה']
+        enum: ['רווק/ה', 'גרוש/ה', 'אלמן/ה', 'גרוש/ה עם ילדים', 'אחר'] // ✅ תוקן - הוספת הערכים החסרים
     },
 
     height: {
@@ -60,7 +60,7 @@ const participantSchema = new mongoose.Schema({
 
     religiosity: {
         type: String,
-        enum: ['חילוני', 'מסורתי', 'דתי', 'חרדי', '']
+        enum: ['חילוני', 'מסורתי', 'דתי', 'דתי לאומי', 'חרדי', 'אחר', ''] // ✅ תוקן - הוספת "דתי לאומי" ו"אחר"
     },
 
     // רקע מקצועי
@@ -88,6 +88,13 @@ const participantSchema = new mongoose.Schema({
     lookingFor: {
         type: String,
         trim: true
+    },
+
+    // ✅ שדה חדש - מידע נוסף (כתיבה חופשית)
+    additionalInfo: {
+        type: String,
+        trim: true,
+        maxlength: [1000, 'מידע נוסף חייב להיות עד 1000 תווים']
     },
 
     // יצירת קשר
