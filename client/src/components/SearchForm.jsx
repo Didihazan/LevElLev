@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, User, Phone, CheckCircle, ChevronLeft } from 'lucide-react';
+import {Search, User, Phone, CheckCircle, ChevronRight} from 'lucide-react';
 import { API, apiCall } from '../api/config.js';
 
 const SearchForm = ({ onBack }) => {
@@ -75,7 +75,7 @@ const SearchForm = ({ onBack }) => {
                     onClick={onBack}
                     className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
                 >
-                    <ChevronLeft size={20} />
+                    <ChevronRight size={20} />
                     <span>חזרה</span>
                 </button>
 

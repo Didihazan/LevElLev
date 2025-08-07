@@ -152,10 +152,12 @@ const AdminDashboard = () => {
         const uniqueId = searchRequest._id;
         const isExpanded = expandedUser === uniqueId;
         const isDeleting = deleting === searchRequest._id;
+        // שימוש בצבעי גרדיינט דומים לרווקים/רווקות, אך עם גוון ייחודי קל
+        const bgColor = 'from-purple-50 to-blue-50';
 
         return (
             <div
-                className={`bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl shadow-lg mb-4 overflow-hidden transition-all duration-300 ${isDeleting ? 'opacity-50' : ''}`}
+                className={`bg-gradient-to-r ${bgColor} rounded-2xl shadow-lg mb-4 overflow-hidden transition-all duration-300 ${isDeleting ? 'opacity-50' : ''}`}
             >
                 <div
                     className="p-6 cursor-pointer hover:bg-white/50 transition-all duration-200"
@@ -163,7 +165,7 @@ const AdminDashboard = () => {
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center">
+                            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
                                 <Search className="text-purple-500" size={32} />
                             </div>
                             <div>
@@ -393,12 +395,12 @@ const AdminDashboard = () => {
                                 <Heart className="text-red-500" size={48} />
                             </div>
                         </div>
-                        <h1 className="text-5xl font-bold text-gray-800 mb-4">ניהול משתתפים ובקשות חיפוש</h1>
+                        <h1 className="text-5xl font-bold text-gray-800 mb-4">רשימת המשתתפים</h1>
                         <p className="text-xl text-gray-600">
                             סה"כ {males.length + females.length} משתתפים ו-{searchRequests.length} בקשות חיפוש
                         </p>
                     </div>
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                         <UsersList
                             users={males}
                             title="רווקים"
