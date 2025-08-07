@@ -139,8 +139,6 @@ router.get('/males', async (req, res) => {
     try {
         const males = await Participant.findByGender('male');
 
-        console.log(`📋 נשלחה רשימת רווקים: ${males.length} משתתפים`);
-
         res.json({
             success: true,
             count: males.length,
@@ -160,8 +158,6 @@ router.get('/males', async (req, res) => {
 router.get('/females', async (req, res) => {
     try {
         const females = await Participant.findByGender('female');
-
-        console.log(`📋 נשלחה רשימת רווקות: ${females.length} משתתפות`);
 
         res.json({
             success: true,
