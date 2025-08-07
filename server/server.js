@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './config/database.js';
 import participantsRouter from './routes/participants.js';
+import searchRouter from './routes/searchRequests.js';
 
 // הגדרת __dirname ב-ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -33,6 +34,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // נתבי API
 app.use('/api/participants', participantsRouter);
+app.use('/api/search-requests', searchRouter);
 
 // נתב בדיקה
 app.get('/api/health', (req, res) => {

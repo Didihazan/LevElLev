@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Heart, User, Phone, Camera, Send, CheckCircle } from 'lucide-react';
+import { Heart, User, Phone, Camera, Send, CheckCircle, Search } from 'lucide-react';
 import { API, apiCall } from '../api/config.js';
-import ConfirmationModal from './ConfirmationModal.jsx'; // ✅ Import הקומפוננטה
+import ConfirmationModal from './ConfirmationModal.jsx';
+import SearchForm from './SearchForm.jsx';
 
 const WeddingDatingForm = () => {
-    const [selectedGender, setSelectedGender] = useState('');
+    const [selectedOption, setSelectedOption] = useState(''); // שינוי מ-selectedGender
     const [formData, setFormData] = useState({
         name: '',
         age: '',
@@ -28,9 +29,14 @@ const WeddingDatingForm = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
 
+    // אם נבחרה אופציית חיפוש - הצג את טופס החיפוש
+    if (selectedOption === 'search') {
+        return <SearchForm onBack={() => setSelectedOption('')} />;
+    }
+
     // בחירת צבעים לפי מין
     const getColorScheme = () => {
-        if (selectedGender === 'male') {
+        if (selectedOption === 'male') {
             return {
                 gradient: 'from-blue-50 to-indigo-100',
                 primary: 'blue',
@@ -41,7 +47,7 @@ const WeddingDatingForm = () => {
                 successBg: 'bg-blue-50',
                 successText: 'text-blue-800'
             };
-        } else if (selectedGender === 'female') {
+        } else if (selectedOption === 'female') {
             return {
                 gradient: 'from-pink-50 to-purple-100',
                 primary: 'pink',
@@ -85,9 +91,8 @@ const WeddingDatingForm = () => {
         }
     };
 
-    // ✅ פונקציה לבדיקת הטופס ופתיחת חלון האישור
     const handleInitialSubmit = async () => {
-        if (!selectedGender) {
+        if (!selectedOption || selectedOption === 'search') {
             alert('❌ נא לבחור מין (גבר או אישה) כדי להמשיך');
             return;
         }
@@ -120,7 +125,6 @@ const WeddingDatingForm = () => {
         if (!formData.phone || !formData.phone.trim()) {
             errors.push('• מספר טלפון הוא שדה חובה');
         } else {
-            // בדיקה בסיסית של פורמט טלפון
             const phonePattern = /^[\d\-\s\+\(\)]+$/;
             if (!phonePattern.test(formData.phone.trim())) {
                 errors.push('• מספר טלפון חייב להכיל רק ספרות, מקפים, רווחים או סוגריים');
@@ -139,32 +143,28 @@ const WeddingDatingForm = () => {
             }
         }
 
-        // אם יש שגיאות, הצג אותן למשתמש
         if (errors.length > 0) {
             alert(`❌ נמצאו שגיאות בטופס:\n\n${errors.join('\n')}\n\nנא לתקן ולנסות שוב.`);
             return;
         }
 
-        // אם הכל תקין - פתח חלון אישור
         setShowConfirmation(true);
     };
 
-    // ✅ פונקציה לשליחה בפועל (אחרי אישור)
     const handleFinalSubmit = async () => {
         setIsSubmitting(true);
 
         try {
-            // יצירת FormData לשליחת הטופס עם התמונה
             const formDataToSend = new FormData();
 
             // הוספת כל השדות
-            formDataToSend.append('gender', selectedGender);
+            formDataToSend.append('gender', selectedOption); // שימוש ב-selectedOption במקום selectedGender
             formDataToSend.append('name', formData.name.trim());
             formDataToSend.append('age', formData.age);
             formDataToSend.append('status', formData.status);
             formDataToSend.append('phone', formData.phone.trim());
 
-            // שדות אופציונליים - רק אם לא ריקים
+            // שדות אופציונליים
             if (formData.height && formData.height.trim()) {
                 formDataToSend.append('height', formData.height.trim());
             }
@@ -199,12 +199,10 @@ const WeddingDatingForm = () => {
                 formDataToSend.append('additionalInfo', formData.additionalInfo.trim());
             }
 
-            // הוספת התמונה אם קיימת
             if (formData.photo) {
                 formDataToSend.append('photo', formData.photo);
             }
 
-            // שליחה לשרת
             const response = await apiCall(API.addParticipant(formDataToSend));
 
             console.log('✅ נשלח בהצלחה:', response);
@@ -214,11 +212,9 @@ const WeddingDatingForm = () => {
         } catch (error) {
             console.error('❌ שגיאה בשליחה:', error);
 
-            // הצגת שגיאות מפורטות מהשרת
             let errorMessage = 'שגיאה בשליחת הטופס';
 
             if (error.message.includes('errors') && error.response) {
-                // אם יש שגיאות מפורטות מהשרת
                 errorMessage = `❌ ${error.message}`;
             } else if (error.message.includes('Failed to fetch')) {
                 errorMessage = '❌ שגיאת חיבור לשרת. נא לבדוק שהשרת פועל ולנסות שוב.';
@@ -235,7 +231,6 @@ const WeddingDatingForm = () => {
         }
     };
 
-    // ✅ פונקציה לביטול האישור
     const handleCancelConfirmation = () => {
         setShowConfirmation(false);
     };
@@ -275,36 +270,54 @@ const WeddingDatingForm = () => {
                         <p className="text-lg text-gray-600 leading-relaxed">מלא/י את הפרטים למציאת הזיווג המושלם</p>
                     </div>
 
-                    {/* בחירת מין */}
+                    {/* בחירת אופציה - עדכון! */}
                     <div className="bg-white rounded-3xl shadow-xl p-6 mb-8">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-4">
+                            {/* שורה ראשונה - גבר ואישה */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => setSelectedOption('male')}
+                                    className={`min-h-[60px] py-5 px-4 rounded-2xl font-bold text-lg transition-all duration-300 ${
+                                        selectedOption === 'male'
+                                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg transform scale-105'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
+                                    }`}
+                                >
+                                    <div className="text-2xl mb-1">👨</div>
+                                    <div>גבר</div>
+                                </button>
+                                <button
+                                    onClick={() => setSelectedOption('female')}
+                                    className={`min-h-[60px] py-5 px-4 rounded-2xl font-bold text-lg transition-all duration-300 ${
+                                        selectedOption === 'female'
+                                            ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg transform scale-105'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
+                                    }`}
+                                >
+                                    <div className="text-2xl mb-1">👩</div>
+                                    <div>אישה</div>
+                                </button>
+                            </div>
+
+                            {/* שורה שנייה - מחפש מישהו - חדש! */}
                             <button
-                                onClick={() => setSelectedGender('male')}
-                                className={`min-h-[60px] py-5 px-4 rounded-2xl font-bold text-lg transition-all duration-300 ${
-                                    selectedGender === 'male'
-                                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg transform scale-105'
+                                onClick={() => setSelectedOption('search')}
+                                className={`w-full min-h-[60px] py-5 px-4 rounded-2xl font-bold text-lg transition-all duration-300 ${
+                                    selectedOption === 'search'
+                                        ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg transform scale-105'
                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
                                 }`}
                             >
-                                <div className="text-2xl mb-1">👨</div>
-                                <div>גבר</div>
-                            </button>
-                            <button
-                                onClick={() => setSelectedGender('female')}
-                                className={`min-h-[60px] py-5 px-4 rounded-2xl font-bold text-lg transition-all duration-300 ${
-                                    selectedGender === 'female'
-                                        ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg transform scale-105'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
-                                }`}
-                            >
-                                <div className="text-2xl mb-1">👩</div>
-                                <div>אישה</div>
+                                <div className="flex items-center justify-center gap-3">
+                                    <Search size={24} />
+                                    <span>ראיתי מישהו/י שמעניין/ת אותי</span>
+                                </div>
                             </button>
                         </div>
                     </div>
 
-                    {/* Form */}
-                    {selectedGender && (
+                    {/* Form - מוצג רק אם נבחר male או female */}
+                    {(selectedOption === 'male' || selectedOption === 'female') && (
                         <div className="bg-white rounded-3xl shadow-xl p-6 space-y-8">
                             {/* שם */}
                             <div className="space-y-3">
@@ -375,7 +388,7 @@ const WeddingDatingForm = () => {
                                     <option value="רווק/ה">רווק/ה</option>
                                     <option value="גרוש/ה">גרוש/ה</option>
                                     <option value="אלמן/ה">אלמן/ה</option>
-                                    <option value="גרוש/ה עם ילדים">גרוש/ה עם ילדים</option> {/* ✅ תוקן הערך */}
+                                    <option value="גרוש/ה עם ילדים">גרוש/ה עם ילדים</option>
                                     <option value="אחר">אחר</option>
                                 </select>
                             </div>
@@ -423,9 +436,9 @@ const WeddingDatingForm = () => {
                                     <option value="חילוני">חילוני</option>
                                     <option value="מסורתי">מסורתי</option>
                                     <option value="דתי">דתי</option>
-                                    <option value="דתי לאומי">דתי לאומי</option> {/* ✅ תוקן הערך */}
+                                    <option value="דתי לאומי">דתי לאומי</option>
                                     <option value="חרדי">חרדי</option>
-                                    <option value="אחר">אחר</option> {/* ✅ תוקן הערך */}
+                                    <option value="אחר">אחר</option>
                                 </select>
                             </div>
 
@@ -578,8 +591,7 @@ const WeddingDatingForm = () => {
                                         type="file"
                                         accept="image/*"
                                         onChange={handlePhotoChange}
-                                        className={`w-full pr-12 pl-4 py-4 text-base border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200`}
-                                    />
+                                        className={`w-full pr-12 pl-4 py-4 text-base border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200`}/>
                                 </div>
                                 {formData.photo && (
                                     <p className="text-base text-green-600 font-medium">✓ תמונה נבחרה: {formData.photo.name}</p>
@@ -598,10 +610,10 @@ const WeddingDatingForm = () => {
                         </div>
                     )}
 
-                    {!selectedGender && (
+                    {!selectedOption && (
                         <div className="text-center text-gray-600 mt-10">
                             <div className="bg-white rounded-2xl p-6 shadow-lg">
-                                <p className="text-lg font-medium">👆 בחר/י מין כדי להמשיך למילוי הטופס</p>
+                                <p className="text-lg font-medium">👆 בחר/י אופציה כדי להמשיך</p>
                             </div>
                         </div>
                     )}
@@ -615,14 +627,14 @@ const WeddingDatingForm = () => {
                 </div>
             </div>
 
-            {/* ✅ חלון האישור */}
+            {/* חלון האישור */}
             <ConfirmationModal
                 isOpen={showConfirmation}
                 onConfirm={handleFinalSubmit}
                 onCancel={handleCancelConfirmation}
                 isSubmitting={isSubmitting}
                 colors={colors}
-                selectedGender={selectedGender}
+                selectedGender={selectedOption}
             />
         </>
     );
