@@ -1,61 +1,49 @@
-// זיהוי אוטומטי של סביבת הפעלה
 const isDevelopment = import.meta.env.DEV || window.location.hostname === 'localhost';
 
-// כתובות מתוקנות
 const API_BASE_URL = isDevelopment
-    ? 'http://localhost:5000/api'  // פיתוח - השרת המקומי
-    : 'https://levellev-server.onrender.com/api';  // פרודקשן - Render
+    ? 'http://localhost:5000/api'
+    : 'https://levellev-server.onrender.com/api';
 
 console.log(`🌐 API Base URL: ${API_BASE_URL} (${isDevelopment ? 'Development' : 'Production'})`);
 
 export const API = {
-    // בדיקת תקינות השרת
     health: () => ({
         url: `${API_BASE_URL.replace('/api', '')}/api/health`,
         method: 'GET'
     }),
-
-    // הוספת משתתף חדש
     addParticipant: (formData) => ({
         url: `${API_BASE_URL}/participants`,
         method: 'POST',
-        body: formData // FormData object
+        body: formData
     }),
-
-    // קבלת רשימת רווקים
     getMales: () => ({
         url: `${API_BASE_URL}/participants/males`,
         method: 'GET'
     }),
-
-    // קבלת רשימת רווקות
     getFemales: () => ({
         url: `${API_BASE_URL}/participants/females`,
         method: 'GET'
     }),
-
-    // סטטיסטיקות
     getStats: () => ({
         url: `${API_BASE_URL}/participants/stats`,
         method: 'GET'
     }),
-
-    // מחיקת משתתף
     deleteParticipant: (participantId) => ({
         url: `${API_BASE_URL}/participants/${participantId}`,
         method: 'DELETE'
     }),
-
-    // URL לתמונות מ-Cloudinary
+    getSearchRequests: () => ({
+        url: `${API_BASE_URL}/search-requests`,
+        method: 'GET'
+    }),
     getPhotoUrl: (photo) => {
         if (photo?.cloudinaryUrl) {
             return photo.cloudinaryUrl;
         }
-        return null; // אין תמונה
+        return null;
     }
 };
 
-// פונקציית עזר לביצוע קריאות API
 export const apiCall = async (apiConfig) => {
     try {
         const options = {
@@ -63,7 +51,6 @@ export const apiCall = async (apiConfig) => {
             ...(apiConfig.body && { body: apiConfig.body })
         };
 
-        // אם זה לא FormData, הוסף Content-Type
         if (apiConfig.body && !(apiConfig.body instanceof FormData)) {
             options.headers = {
                 'Content-Type': 'application/json',
@@ -78,8 +65,6 @@ export const apiCall = async (apiConfig) => {
 
         if (!response.ok) {
             console.error(`❌ API Error ${response.status}:`, data);
-
-            // הצגת שגיאות מפורטות מהשרת
             if (data.errors && Array.isArray(data.errors)) {
                 throw new Error(`${data.message}\n\n${data.errors.join('\n')}`);
             } else if (data.message) {
@@ -94,12 +79,9 @@ export const apiCall = async (apiConfig) => {
 
     } catch (error) {
         console.error('❌ API Error:', error);
-
-        // טיפול בשגיאות רשת
         if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
             throw new Error('שגיאת חיבור לשרת. נא לבדוק שהשרת פועל ולנסות שוב.');
         }
-
         throw error;
     }
 };

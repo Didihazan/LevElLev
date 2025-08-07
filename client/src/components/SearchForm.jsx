@@ -86,7 +86,7 @@ const SearchForm = ({ onBack }) => {
                             <Search className="text-purple-500" size={40} />
                         </div>
                     </div>
-                    <h1 className="text-4xl font-bold text-gray-800 mb-4">מחפש/ת מישהו מהאירוע</h1>
+                    <h1 className="text-4xl font-bold text-gray-800 mb-4">ראיתי מישהו/י שמעניין/ת אותי</h1>
                     <p className="text-lg text-gray-600">תאר/י את מי שראית ואנחנו ננסה לעזור</p>
                 </div>
 
@@ -187,7 +187,6 @@ const SearchForm = ({ onBack }) => {
                             <option value="חבר/ת של החתן">חבר/ת של החתן</option>
                             <option value="חבר/ת של הכלה">חבר/ת של הכלה</option>
                             <option value="משפחה">משפחה</option>
-                            <option value="עבודה">עבודה</option>
                         </select>
                     </div>
 
