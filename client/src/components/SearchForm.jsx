@@ -34,12 +34,7 @@ const SearchForm = ({ onBack }) => {
         setIsSubmitting(true);
 
         try {
-            await apiCall({
-                url: `${API.getPhotoUrl() || 'http://localhost:5000'}/api/search-requests`,
-                method: 'POST',
-                body: formData
-            });
-
+            await apiCall(API.addSearchRequest(formData));
             setIsSubmitted(true);
         } catch (error) {
             alert(`❌ שגיאה: ${error.message}`);

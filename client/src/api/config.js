@@ -16,6 +16,11 @@ export const API = {
         method: 'POST',
         body: formData
     }),
+    addSearchRequest: (formData) => ({
+        url: `${API_BASE_URL}/search-requests`,
+        method: 'POST',
+        body: formData
+    }),
     getMales: () => ({
         url: `${API_BASE_URL}/participants/males`,
         method: 'GET'
@@ -43,6 +48,7 @@ export const API = {
         return null;
     }
 };
+
 
 export const apiCall = async (apiConfig) => {
     try {
