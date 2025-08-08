@@ -751,12 +751,12 @@ const WeddingDatingForm = () => {
                                     <div className="relative">
                                         <User className="absolute right-4 top-4 text-gray-400" size={24} />
                                         <input
-                                            id="contactName"
                                             type="text"
-                                            value={formData.contactName}
-                                            onChange={(e) => handleInputChange('contactName', e.target.value)}
-                                            className={`w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
-                                            placeholder="השם שלך "
+                                            required
+                                            value={searchFormData.searcherName}
+                                            onChange={(e) => handleSearchInputChange('searcherName', e.target.value)}
+                                            className="w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl"
+                                            placeholder="השם שלך"
                                         />
                                     </div>
                                 </div>
@@ -766,13 +766,12 @@ const WeddingDatingForm = () => {
                                     <div className="relative">
                                         <Phone className="absolute right-4 top-4 text-gray-400" size={24} />
                                         <input
-                                            id="phone"
                                             type="tel"
                                             required
-                                            value={formData.phone}
-                                            onChange={(e) => handleInputChange('phone', e.target.value)}
-                                            className={`w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
-                                            placeholder="הזנ/י מספר טלפון"
+                                            value={searchFormData.searcherPhone}
+                                            onChange={(e) => handleSearchInputChange('searcherPhone', e.target.value)}
+                                            className="w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl"
+                                            placeholder="הטלפון שלך"
                                         />
                                     </div>
                                 </div>
