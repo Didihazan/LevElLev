@@ -24,15 +24,47 @@ const WeddingDatingForm = () => {
         phone: '',
         photo: null
     });
+    const [searchFormData, setSearchFormData] = useState({
+        targetGender: '',
+        height: '',
+        hairColor: '',
+        clothing: '',
+        specialFeatures: '',
+        connectionToEvent: '',
+        searcherName: '',
+        searcherPhone: '',
+        aboutMe: ''
+    });
+    const [isSearchSubmitted, setIsSearchSubmitted] = useState(false);
 
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
 
-    // אם נבחרה אופציית חיפוש - הצג את טופס החיפוש
-    if (selectedOption === 'search') {
-        return <SearchForm onBack={() => setSelectedOption('')} />;
-    }
+    const handleSearchInputChange = (field, value) => {
+        setSearchFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleSearchSubmit = async () => {
+        if (!searchFormData.targetGender || !searchFormData.searcherName || !searchFormData.searcherPhone) {
+            alert('❌ נא למלא את השדות החובה');
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            await apiCall(API.addSearchRequest(searchFormData));
+            setIsSearchSubmitted(true);
+        } catch (error) {
+            alert(`❌ שגיאה: ${error.message}`);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     // בחירת צבעים לפי מין
     const getColorScheme = () => {
@@ -609,7 +641,191 @@ const WeddingDatingForm = () => {
                             </button>
                         </div>
                     )}
+                    {/* טופס חיפוש - מוצג רק אם נבחר search */}
+                    {selectedOption === 'search' && !isSearchSubmitted && (
+                        <div className="bg-white rounded-3xl shadow-xl p-6 space-y-8">
+                            {/* מין האדם המבוקש */}
+                            <div className="space-y-3">
+                                <label className="block text-base font-bold text-gray-700">
+                                    מי ראית? *
+                                </label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => handleSearchInputChange('targetGender', 'male')}
+                                        className={`py-4 px-4 rounded-2xl font-bold transition-all ${
+                                            searchFormData.targetGender === 'male'
+                                                ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        👨 גבר
+                                    </button>
+                                    <button
+                                        onClick={() => handleSearchInputChange('targetGender', 'female')}
+                                        className={`py-4 px-4 rounded-2xl font-bold transition-all ${
+                                            searchFormData.targetGender === 'female'
+                                                ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        👩 אישה
+                                    </button>
+                                </div>
+                            </div>
 
+                            {/* תיאור חיצוני */}
+                            <div className="space-y-6">
+                                <h3 className="text-lg font-bold text-gray-800 border-b pb-2">תיאור חיצוני</h3>
+
+                                <div className="space-y-3">
+                                    <label className="block text-base font-bold text-gray-700">גובה משוער</label>
+                                    <select
+                                        value={searchFormData.height}
+                                        onChange={(e) => handleSearchInputChange('height', e.target.value)}
+                                        className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl bg-white"
+                                    >
+                                        <option value="">בחר גובה</option>
+                                        <option value="נמוך">נמוך</option>
+                                        <option value="בינוני">בינוני</option>
+                                        <option value="גבוה">גבוה</option>
+                                    </select>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className="block text-base font-bold text-gray-700">צבע שיער</label>
+                                    <input
+                                        type="text"
+                                        value={searchFormData.hairColor}
+                                        onChange={(e) => handleSearchInputChange('hairColor', e.target.value)}
+                                        className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl"
+                                        placeholder="שחור, חום, בלונד..."
+                                    />
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className="block text-base font-bold text-gray-700">תלבושת</label>
+                                    <textarea
+                                        rows={3}
+                                        value={searchFormData.clothing}
+                                        onChange={(e) => handleSearchInputChange('clothing', e.target.value)}
+                                        className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl resize-none"
+                                        placeholder="חליפה כחולה, שמלה אדומה..."
+                                    />
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className="block text-base font-bold text-gray-700">סימנים מיוחדים</label>
+                                    <input
+                                        type="text"
+                                        value={searchFormData.specialFeatures}
+                                        onChange={(e) => handleSearchInputChange('specialFeatures', e.target.value)}
+                                        className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl"
+                                        placeholder="משקפיים, זקן, קעקוע..."
+                                    />
+                                </div>
+                            </div>
+
+                            {/* קשר לאירוע */}
+                            <div className="space-y-3">
+                                <label className="block text-base font-bold text-gray-700">הקשר שלו/ה לאירוע</label>
+                                <select
+                                    value={searchFormData.connectionToEvent}
+                                    onChange={(e) => handleSearchInputChange('connectionToEvent', e.target.value)}
+                                    className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl bg-white"
+                                >
+                                    <option value="">לא יודע/ת</option>
+                                    <option value="צד החתן">צד החתן</option>
+                                    <option value="צד הכלה">צד הכלה</option>
+                                    <option value="חבר/ת של החתן">חבר/ת של החתן</option>
+                                    <option value="חבר/ת של הכלה">חבר/ת של הכלה</option>
+                                    <option value="משפחה">משפחה</option>
+                                </select>
+                            </div>
+
+                            {/* פרטי המחפש */}
+                            <div className="space-y-6">
+                                <h3 className="text-lg font-bold text-gray-800 border-b pb-2">הפרטים שלך</h3>
+
+                                <div className="space-y-3">
+                                    <label className="block text-base font-bold text-gray-700">שם מלא *</label>
+                                    <div className="relative">
+                                        <User className="absolute right-4 top-4 text-gray-400" size={24} />
+                                        <input
+                                            id="contactName"
+                                            type="text"
+                                            value={formData.contactName}
+                                            onChange={(e) => handleInputChange('contactName', e.target.value)}
+                                            className={`w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
+                                            placeholder="השם שלך (שם מלא)"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className="block text-base font-bold text-gray-700">טלפון *</label>
+                                    <div className="relative">
+                                        <Phone className="absolute right-4 top-4 text-gray-400" size={24} />
+                                        <input
+                                            id="phone"
+                                            type="tel"
+                                            required
+                                            value={formData.phone}
+                                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                                            className={`w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
+                                            placeholder="הזנ/י מספר טלפון"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className="block text-base font-bold text-gray-700">קצת עליך (אופציונלי)</label>
+                                    <textarea
+                                        rows={3}
+                                        value={searchFormData.aboutMe}
+                                        onChange={(e) => handleSearchInputChange('aboutMe', e.target.value)}
+                                        className="w-full px-4 py-4 text-lg border-2 border-gray-300 rounded-xl resize-none"
+                                        placeholder="ספר/י קצת על עצמך..."
+                                        maxLength={500}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* כפתור שליחה */}
+                            <button
+                                onClick={handleSearchSubmit}
+                                disabled={isSubmitting}
+                                className="w-full min-h-[60px] bg-gradient-to-r from-purple-500 to-pink-600 text-white py-5 px-6 rounded-2xl font-bold text-xl shadow-xl hover:from-purple-600 hover:to-pink-700 transform hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                        <span>שולח...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Search size={24} />
+                                        <span>שלח בקשת חיפוש</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* מסך האישור לאחר שליחת טופס החיפוש */}
+                    {selectedOption === 'search' && isSearchSubmitted && (
+                        <div className="bg-white rounded-3xl shadow-2xl p-8 text-center">
+                            <CheckCircle className="mx-auto text-green-500 mb-6" size={80} />
+                            <h2 className="text-3xl font-bold text-gray-800 mb-6">הבקשה נשלחה!</h2>
+                            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                                החתן והכלה קיבלו את הבקשה שלך וינסו לעזור למצוא את מי שחיפשת.
+                            </p>
+                            <div className="bg-purple-50 p-6 rounded-2xl">
+                                <p className="text-base text-purple-800 font-medium">
+                                    בהצלחה! 💜
+                                </p>
+                            </div>
+                        </div>
+                    )}
                     {!selectedOption && (
                         <div className="text-center text-gray-600 mt-10">
                             <div className="bg-white rounded-2xl p-6 shadow-lg">
