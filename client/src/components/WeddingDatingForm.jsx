@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Heart, User, Phone, Camera, Send, CheckCircle, Search } from 'lucide-react';
 import { API, apiCall } from '../api/config.js';
 import ConfirmationModal from './ConfirmationModal.jsx';
-import SearchForm from './SearchForm.jsx';
+
 
 const WeddingDatingForm = () => {
     const [selectedOption, setSelectedOption] = useState(''); // שינוי מ-selectedGender
@@ -756,7 +756,7 @@ const WeddingDatingForm = () => {
                                             value={formData.contactName}
                                             onChange={(e) => handleInputChange('contactName', e.target.value)}
                                             className={`w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-300 rounded-xl ${colors.ring} focus:border-transparent transition-all duration-200`}
-                                            placeholder="השם שלך (שם מלא)"
+                                            placeholder="השם שלך "
                                         />
                                     </div>
                                 </div>
